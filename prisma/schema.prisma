@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EventType {
+  TRAINING
+  MATCH
+  CLUB
+}
+
+model Player {
+  id           String   @id @default(cuid())
+  name         String
+  position     String
+  number       Int?
+  phone        String?
+  email        String?
+  photoUrl     String?
+  medicalNotes String?
+  createdAt    DateTime @default(now())
+  stats        Stat[]
+}
+
+model Event {
+  id            String    @id @default(cuid())
+  title         String
+  type          EventType
+  startsAt      DateTime
+  location      String?
+  notes         String?
+  remindMinutes Int       @default(60)
+  remindedAt    DateTime?
+  stats         Stat[]
+
+  @@index([startsAt])
+}
+
+model Stat {
+  id       String @id @default(cuid())
+  player   Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  playerId String
+  event    Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId  String
+  minutes  Int    @default(0)
+  goals    Int    @default(0)
+  assists  Int    @default(0)
+  rating   Float?
+
+  @@unique([playerId, eventId])
+}
